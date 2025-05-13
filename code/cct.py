@@ -10,25 +10,42 @@ def load_plant_knowledge_data(csv_file_path="plant_knowledge.csv"):
     Loads the plant knowledge dataset from a CSV file
     """
     try:
-        # Construct the absolute path
-        script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of this script
-        full_path = os.path.join(script_dir, csv_file_path)  # Combine script dir with provided path
-        df = pd.read_csv(full_path)
-
-        # Drop the "Informant" column
-        df = df.drop(columns=["Informant"])
-        return df
-    except FileNotFoundError:
-        print(f"Error: File not found at {full_path}")
+        # Try multiple potential locations for the file
+        potential_paths = [
+            csv_file_path,  # Try the path as provided
+            os.path.join(os.getcwd(), csv_file_path),  # Try from current working directory
+            os.path.join(os.getcwd(), "data", os.path.basename(csv_file_path))  # Try in a "data" subfolder
+        ]
+        
+        # Try each path until we find the file
+        for path in potential_paths:
+            if os.path.exists(path):
+                print(f"Found file at: {path}")
+                df = pd.read_csv(path)
+                # Drop the "Informant" column if it exists
+                if "Informant" in df.columns:
+                    df = df.drop(columns=["Informant"])
+                return df
+        
+        # If we get here, we tried all paths and didn't find the file
+        print(f"Error: Could not find file. Tried the following paths:")
+        for path in potential_paths:
+            print(f"  - {path}")
         return None
+        
     except Exception as e:
         print(f"Error reading CSV file: {e}")
         return None
 
 if __name__ == "__main__":
-    csv_file_path = "data/plant_knowledge.csv"  # relative path 
-    df = load_plant_knowledge_data(csv_file_path)
-
+    # Try with default location first
+    df = load_plant_knowledge_data("plant_knowledge.csv")
+    
+    # If that fails, try explicit data directory
+    if df is None:
+        print("Trying alternative location...")
+        df = load_plant_knowledge_data("data/plant_knowledge.csv")
+    
     if df is not None:
         print("Data loaded successfully:")
         print(df.head())

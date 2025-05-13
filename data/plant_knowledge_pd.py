@@ -1,3 +1,4 @@
+
 import pandas as pd
 
 def create_plant_knowledge_csv(file_path="plant_knowledge.csv"):

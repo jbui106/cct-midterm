@@ -5,23 +5,37 @@ import arviz as az
 import matplotlib.pyplot as plt
 import os
 
-def load_plant_knowledge_data(csv_file_path="data/plant_knowledge.csv"):
+def load_plant_knowledge_data(csv_file_path="plant_knowledge.csv"):
     """
-    Loads the plant knowledge dataset from a CSV file
+    Loads the plant knowledge dataset from a csv file
     """
     try:
-       # Read the CSV file into a Pandas DataFrame
-       df = pd.read_csv(csv_file_path)
+        # Construct absolute path
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # get directory
+        full_path = os.path.join(script_dir, csv_file_path)
+        df = pd.read_csv(full_path)
 
-       # Drop "Informant" column
-       df = df.drop(columns=["Informant"])
-       return df
+        # Drop "Informant" column
+        df = df.drop(columns=["Informant"])
+        return df
     except FileNotFoundError:
-       print(f"Error: File not found at {csv_file_path}")
-       return None
+        print(f"Error: File not found at {full_path}")
+        return None
     except Exception as e:
-       print(f"Error reading CSV file: {e}")
-       return None
+        print(f"Error reading csv file: {e}")
+        return None
+
+if __name__ == "__main__":
+    # Example usage
+    csv_file_path = "data/plant_knowledge.csv"  # Relative path
+    df = load_plant_knowledge_data(csv_file_path)
+
+    if df is not None:
+        print("Data loaded successfully:")
+        print(df.head())
+    else:
+        print("Failed to load data.")
+
 
 def cct_model(data):
     """

@@ -5,52 +5,37 @@ import arviz as az
 import matplotlib.pyplot as plt
 import os
 
-def load_plant_knowledge_data(csv_file_path="plant_knowledge.csv"):
+def load_plant_knowledge_data(csv_file_path=None):
     """
     Loads the plant knowledge dataset from a CSV file
     """
     try:
-        # Try multiple potential locations for the file
-        potential_paths = [
-            csv_file_path,  # Try the path as provided
-            os.path.join(os.getcwd(), csv_file_path),  # Try from current working directory
-            os.path.join(os.getcwd(), "data", os.path.basename(csv_file_path))  # Try in a "data" subfolder
-        ]
+        # If no path provided, construct path to project data directory
+        if csv_file_path is None:
+            # Get directory of the current script
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            # Go up one level to the project root
+            project_root = os.path.dirname(script_dir)
+            # Path to data directory
+            csv_file_path = os.path.join(project_root, "data", "plant_knowledge.csv")
         
-        # Try each path until we find the file
-        for path in potential_paths:
-            if os.path.exists(path):
-                print(f"Found file at: {path}")
-                df = pd.read_csv(path)
-                # Drop the "Informant" column if it exists
-                if "Informant" in df.columns:
-                    df = df.drop(columns=["Informant"])
-                return df
+        print(f"Attempting to load data from: {csv_file_path}")
         
-        # If we get here, we tried all paths and didn't find the file
-        print(f"Error: Could not find file. Tried the following paths:")
-        for path in potential_paths:
-            print(f"  - {path}")
+        # Load the CSV file
+        df = pd.read_csv(csv_file_path)
+        
+        # Drop the "Informant" column if it exists
+        if "Informant" in df.columns:
+            df = df.drop(columns=["Informant"])
+        
+        return df
+    
+    except FileNotFoundError:
+        print(f"Error: File not found at {csv_file_path}")
         return None
-        
     except Exception as e:
         print(f"Error reading CSV file: {e}")
         return None
-
-if __name__ == "__main__":
-    # Try with default location first
-    df = load_plant_knowledge_data("plant_knowledge.csv")
-    
-    # If that fails, try explicit data directory
-    if df is None:
-        print("Trying alternative location...")
-        df = load_plant_knowledge_data("data/plant_knowledge.csv")
-    
-    if df is not None:
-        print("Data loaded successfully:")
-        print(df.head())
-    else:
-        print("Failed to load data.")
 
 
 def cct_model(data):

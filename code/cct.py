@@ -57,7 +57,6 @@ def cct_model(data):
        # Calculate the probability p_ij for each informant i and question j
        p = Z_reshaped * D_reshaped + (1 - Z_reshaped) * (1 - D_reshaped)
 
-
        # Bernoulli likelihood function.
        pm.Bernoulli("X", p=p, observed=data)
 

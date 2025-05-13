@@ -3,17 +3,22 @@ import numpy as np
 import pymc as pm
 import arviz as az
 import matplotlib.pyplot as plt
+import os  # Import the os module for path manipulation
 
 def load_plant_knowledge_data(csv_file_path="plant_knowledge.csv"):
+    """
+    Loads the plant knowledge dataset from a CSV file
+    """
     try:
-        # Read the CSV file into a Pandas DataFrame
-        df = pd.read_csv(csv_file_path)
+        # Use os.path.abspath to get the absolute path
+        abs_file_path = os.path.abspath(csv_file_path)
+        df = pd.read_csv(abs_file_path)
 
-        # Drop the "Informant" column
+        # Drop "Informant" column
         df = df.drop(columns=["Informant"])
         return df
     except FileNotFoundError:
-        print(f"Error: File not found at {csv_file_path}")
+        print(f"Error: File not found at {abs_file_path}")
         return None
     except Exception as e:
         print(f"Error reading CSV file: {e}")

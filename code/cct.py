@@ -9,17 +9,17 @@ def load_plant_knowledge_data(csv_file_path="data/plant_knowledge.csv"):
     """
     Loads the plant knowledge dataset from a CSV file
     """
-   try:
+    try:
        # Read the CSV file into a Pandas DataFrame
        df = pd.read_csv(csv_file_path)
 
        # Drop "Informant" column
        df = df.drop(columns=["Informant"])
        return df
-   except FileNotFoundError:
+    except FileNotFoundError:
        print(f"Error: File not found at {csv_file_path}")
        return None
-   except Exception as e:
+    except Exception as e:
        print(f"Error reading CSV file: {e}")
        return None
 

@@ -7,27 +7,26 @@ import os
 
 def load_plant_knowledge_data(csv_file_path="plant_knowledge.csv"):
     """
-    Loads the plant knowledge dataset from a csv file
+    Loads the plant knowledge dataset from a CSV file
     """
     try:
-        # Construct absolute path
-        script_dir = os.path.dirname(os.path.abspath(__file__))  # get directory
-        full_path = os.path.join(script_dir, csv_file_path)
+        # Construct the absolute path
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of this script
+        full_path = os.path.join(script_dir, csv_file_path)  # Combine script dir with provided path
         df = pd.read_csv(full_path)
 
-        # Drop "Informant" column
+        # Drop the "Informant" column
         df = df.drop(columns=["Informant"])
         return df
     except FileNotFoundError:
         print(f"Error: File not found at {full_path}")
         return None
     except Exception as e:
-        print(f"Error reading csv file: {e}")
+        print(f"Error reading CSV file: {e}")
         return None
 
 if __name__ == "__main__":
-    # Example usage
-    csv_file_path = "data/plant_knowledge.csv"  # Relative path
+    csv_file_path = "data/plant_knowledge.csv"  # relative path 
     df = load_plant_knowledge_data(csv_file_path)
 
     if df is not None:

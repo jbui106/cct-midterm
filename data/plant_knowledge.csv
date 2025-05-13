@@ -1,49 +1,48 @@
 import pandas as pd
-import io
 
-def load_plant_knowledge_data(data_string=None):
+def create_plant_knowledge_csv(file_path="plant_knowledge.csv"):
     """
-    Loads the plant knowledge dataset from a string and returns it as a Pandas DataFrame.
-    The "Informant" column is excluded from the returned DataFrame.
+    Creates a CSV file plant_knowledge.csv file
+
     Args:
-        data_string (str, optional): A string containing the CSV data.
-            If None, the default dataset string is used.
-            Default is None.
-    Returns:
-        pandas.DataFrame: The plant knowledge dataset, excluding the "Informant" column.
+        file_path (str): The path where the CSV file should be created.
+            Defaults to "plant_knowledge.csv" in the current directory.
     """
-    # Default dataset string
-    default_data = """Informant,PQ1,PQ2,PQ3,PQ4,PQ5,PQ6,PQ7,PQ8,PQ9,PQ10,PQ11,PQ12,PQ13,PQ14,PQ15,PQ16,PQ17,PQ18,PQ19,PQ20
-P1,0,0,1,1,1,0,1,0,0,0,0,1,1,0,0,0,0,1,0,1
-P2,0,1,1,0,0,1,1,0,1,0,1,0,0,1,0,0,0,0,1,1
-P3,1,0,0,0,1,0,1,0,1,0,0,1,0,0,1,1,1,0,0,1
-P4,0,1,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0
-P5,0,1,1,0,1,1,1,1,1,1,1,0,1,1,1,0,0,1,0,1
-P6,0,1,1,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,1
-P7,0,0,1,1,1,1,1,1,0,1,1,0,0,1,0,1,1,0,0,1
-P8,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,0,0,0,1
-P9,0,0,0,1,0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,0
-P10,0,0,0,0,1,1,0,0,0,1,0,1,0,0,1,1,0,0,1,1
-"""
-    # Use the provided data_string or the default
-    data = data_string if data_string else default_data
+    # Data as a dictionary
+    data = {
+        "Informant": ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10"],
+        "PQ1": [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+        "PQ2": [0, 1, 0, 1, 1, 1, 0, 0, 0, 0],
+        "PQ3": [1, 1, 0, 0, 1, 1, 1, 1, 0, 0],
+        "PQ4": [1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+        "PQ5": [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+        "PQ6": [0, 1, 0, 0, 1, 1, 1, 0, 0, 1],
+        "PQ7": [1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+        "PQ8": [0, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+        "PQ9": [0, 1, 1, 1, 1, 1, 0, 1, 0, 0],
+        "PQ10": [0, 0, 0, 0, 1, 1, 1, 1, 0, 1],
+        "PQ11": [0, 1, 0, 0, 1, 1, 1, 1, 1, 0],
+        "PQ12": [1, 0, 1, 0, 0, 0, 0, 0, 1, 1],
+        "PQ13": [1, 0, 0, 1, 1, 0, 0, 1, 1, 0],
+        "PQ14": [0, 1, 0, 0, 1, 1, 1, 0, 0, 0],
+        "PQ15": [0, 0, 1, 0, 1, 0, 0, 1, 1, 1],
+        "PQ16": [0, 0, 1, 0, 0, 0, 1, 0, 1, 1],
+        "PQ17": [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+        "PQ18": [1, 0, 0, 1, 1, 0, 0, 0, 0, 0],
+        "PQ19": [0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+        "PQ20": [1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
+    }
 
-    # Load the data into a Pandas DataFrame
-    df = pd.read_csv(io.StringIO(data))
+    # Create a Pandas DataFrame
+    df = pd.DataFrame(data)
 
-    # Drop the "Informant" column
-    df = df.drop(columns=["Informant"])
+    # Write the DataFrame to a CSV file
+    try:
+        df.to_csv(file_path, index=False)  # index=False prevents writing the DataFrame index to the CSV
+        print(f"Successfully created CSV file at {file_path}")
+    except Exception as e:
+        print(f"Error creating CSV file: {e}")
 
-    return df
-
-if __name__ == '__main__':
-    # Load the data using the function
-    plant_data = load_plant_knowledge_data()
-
-    # Print the DataFrame
-    print(plant_data)
-
-    # You can also convert it to a NumPy array if needed
-    import numpy as np
-    plant_array = np.array(plant_data)
-    print(plant_array)
+if __name__ == "__main__":
+    # Create the CSV file
+    create_plant_knowledge_csv()

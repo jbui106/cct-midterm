@@ -45,9 +45,7 @@ def cct_model(data):
 
    with pm.Model() as model:
        # Priors
-       # For informant competence (D), uniform prior between 0.5 and 1.
        D = pm.Uniform("D", lower=0.5, upper=1, shape=N)
-       # For consensus answers (Z), bernoulli prior with p=0.5.
        Z = pm.Bernoulli("Z", p=0.5, shape=M)
 
        # Likelihood
@@ -67,7 +65,6 @@ def analyze_results(trace, data):
    """
    Analyzes the results of the PyMC CCT model.
    """
-  
    N = data.shape[0]
    M = data.shape[1]
 
@@ -121,23 +118,18 @@ def main():
    """
    Main function to load data, run the CCT model, and analyze results.
    """
-   # Load the data
    plant_knowledge_df = load_plant_knowledge_data()
    if plant_knowledge_df is None:
        print("Error: Failed to load data. Exiting.")
        return
 
-   # Convert the Pandas DataFrame to a NumPy array for PyMC
    plant_knowledge_data = plant_knowledge_df.values
 
-   # Implement the model in PyMC
    model = cct_model(plant_knowledge_data)
 
-   # Perform inference
    with model:
        trace = pm.sample(draws=2000, chains=4, tune=1000)
 
-   # Analyze the results
    analyze_results(trace, plant_knowledge_data)
 
 if __name__ == "__main__":

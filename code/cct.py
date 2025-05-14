@@ -72,8 +72,6 @@ def analyze_results(trace, data):
    print("Convergence Diagnostics:")
    summary = az.summary(trace)
    print(summary)
-   az.plot_pair(trace, var_names=['D', 'Z'])
-   plt.show()
 
    # Estimate Informant Competence
    print("\nInformant Competence (D):")

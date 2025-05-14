@@ -106,71 +106,12 @@ def analyze_results(trace, data, save_plots=True, plots_dir="plots"):
     has_d = "D" in trace.posterior.data_vars
     has_z = "Z" in trace.posterior.data_vars
     
-    # Create appropriate pair plots based on what's in the trace
-    if has_d:
-        # If D exists as one variable (likely with dimensions)
-        print("\nCreating pair plot for informant competence (D)...")
-        fig_pair_d = az.plot_pair(trace, var_names=["D"], figsize=(12, 10))
-        plt.suptitle("Pair Plot of Informant Competence (D)", fontsize=16)
-        if save_plots:
-            plt.savefig(os.path.join(plots_path, "pairplot_D.png"), dpi=300, bbox_inches='tight')
-        plt.show()
-    
-    if has_z:
-        # If Z exists as one variable (likely with dimensions)
-        print("\nCreating pair plot for consensus answers (Z)...")
-        fig_pair_z = az.plot_pair(trace, var_names=["Z"], figsize=(12, 10))
-        plt.suptitle("Pair Plot of Consensus Answers (Z)", fontsize=16)
-        if save_plots:
-            plt.savefig(os.path.join(plots_path, "pairplot_Z.png"), dpi=300, bbox_inches='tight')
-        plt.show()
-    
-    # Combined plot if both exist
-    if has_d and has_z:
-        print("\nCreating combined pair plot...")
-        fig_pair_combined = az.plot_pair(trace, var_names=["D", "Z"], figsize=(12, 10))
-        plt.suptitle("Combined Pair Plot", fontsize=16)
-        if save_plots:
-            plt.savefig(os.path.join(plots_path, "pairplot_combined.png"), dpi=300, bbox_inches='tight')
-        plt.show()
-    
-    # Alternative: Create custom pair plots if needed
     print("\nCreating custom diagnostic plots...")
     
     # Extract posterior samples for D and Z
     d_samples = trace.posterior["D"].values.reshape(-1, N)  # Combine chains and draws
     z_samples = trace.posterior["Z"].values.reshape(-1, M)  # Combine chains and draws
     
-    # Create a custom scatter plot for pairs of D values
-    if N >= 2:  # Need at least 2 informants for pairs
-        num_plots = min(5, N)  # Limit number of subplots
-        
-        fig, axes = plt.subplots(num_plots, num_plots, figsize=(12, 10))
-        plt.suptitle("Custom Pair Plot of Informant Competence (D)", fontsize=16)
-        
-        for i in range(num_plots):
-            for j in range(num_plots):
-                if i != j and i < j:  # Upper triangle only
-                    axes[i, j].scatter(d_samples[:, i], d_samples[:, j], alpha=0.5)
-                    axes[i, j].set_xlabel(f"D[{i}]")
-                    axes[i, j].set_ylabel(f"D[{j}]")
-                elif i == j:  # Diagonal
-                    # Histogram on diagonal
-                    axes[i, i].hist(d_samples[:, i], bins=20, alpha=0.7)
-                    axes[i, i].set_xlabel(f"D[{i}]")
-                else:
-                    # Remove lower triangle plots
-                    axes[i, j].set_visible(False)
-        
-        plt.tight_layout(rect=[0, 0, 1, 0.97])  # Adjust for title
-        if save_plots:
-            plt.savefig(os.path.join(plots_path, "custom_pairplot_D.png"), dpi=300)
-        plt.show()
-    
-    # -------------------------------------------
-    # END OF PAIR PLOT HANDLING
-    # -------------------------------------------
-
     # Estimate Informant Competence
     print("\nInformant Competence (D):")
     D_mean = trace.posterior["D"].mean(dim=("chain", "draw")).values

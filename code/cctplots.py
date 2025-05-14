@@ -5,6 +5,11 @@ import arviz as az
 import matplotlib.pyplot as plt
 import os
 
+# Set matplotlib to use a specific backend if you're having issues
+# Uncomment one of these if needed:
+# plt.switch_backend('TkAgg')  # For most desktop environments
+# plt.switch_backend('Agg')    # For non-interactive environments (saving only)
+
 def load_plant_knowledge_data(csv_file_path=None):
     """
     Loads the plant knowledge dataset from a CSV file
@@ -24,9 +29,10 @@ def load_plant_knowledge_data(csv_file_path=None):
         
         print(f"Attempting to load data from: {csv_file_path}")
         
+        # Load the CSV file
         df = pd.read_csv(csv_file_path)
         
-        # Drop "Informant" column if it exists
+        # Drop the "Informant" column if it exists
         if "Informant" in df.columns:
             df = df.drop(columns=["Informant"])
         
@@ -38,7 +44,6 @@ def load_plant_knowledge_data(csv_file_path=None):
     except Exception as e:
         print(f"Error reading CSV file: {e}")
         return None
-
 
 def cct_model(data):
     """
@@ -67,16 +72,9 @@ def cct_model(data):
 
     return model
 
-
 def analyze_results(trace, data, save_plots=True, plots_dir="plots"):
     """
     Analyzes the results of the PyMC CCT model.
-    
-    Parameters:
-    trace: PyMC trace object
-    data: The original data used for the model
-    save_plots: Boolean indicating whether to save plots to files
-    plots_dir: Directory to save plots (will be created if it doesn't exist)
     """
     
     N = data.shape[0]
@@ -100,47 +98,73 @@ def analyze_results(trace, data, save_plots=True, plots_dir="plots"):
     summary = az.summary(trace)
     print(summary)
     
-    # -------------------------------------------
-    # PAIR PLOT HANDLING - MODIFIED TO FIX ISSUE
-    # -------------------------------------------
+    print("\nAvailable variables in trace:")
+    for var_name in trace.posterior.data_vars:
+        print(f"  - {var_name}")
     
-    # For D values, create a more manageable subset for the pair plot
-    # Select only a few informants to avoid exceeding the subplot limit
-    max_informants_to_plot = 6  # Adjust based on your needs
-    D_indices_to_plot = list(range(min(N, max_informants_to_plot)))
+    # Determine if D and Z exist directly or with indices
+    has_d = "D" in trace.posterior.data_vars
+    has_z = "Z" in trace.posterior.data_vars
     
-    # For Z values, also select a manageable subset
-    max_questions_to_plot = 6  # Adjust based on your needs
-    Z_indices_to_plot = list(range(min(M, max_questions_to_plot)))
-    
-    # Prepare variable names for the pair plot
-    D_vars = [f'D[{i}]' for i in D_indices_to_plot]
-    Z_vars = [f'Z[{j}]' for j in Z_indices_to_plot]
-    
-    # Create separate pair plots for D and Z
-    print("\nCreating pair plot for informant competence (D)...")
-    if D_vars:
-        fig_pair_D = az.plot_pair(trace, var_names=D_vars, figsize=(12, 10))
+    # Create appropriate pair plots based on what's in the trace
+    if has_d:
+        # If D exists as one variable (likely with dimensions)
+        print("\nCreating pair plot for informant competence (D)...")
+        fig_pair_d = az.plot_pair(trace, var_names=["D"], figsize=(12, 10))
         plt.suptitle("Pair Plot of Informant Competence (D)", fontsize=16)
         if save_plots:
             plt.savefig(os.path.join(plots_path, "pairplot_D.png"), dpi=300, bbox_inches='tight')
         plt.show()
     
-    print("\nCreating pair plot for consensus answers (Z)...")
-    if Z_vars:
-        fig_pair_Z = az.plot_pair(trace, var_names=Z_vars, figsize=(12, 10))
+    if has_z:
+        # If Z exists as one variable (likely with dimensions)
+        print("\nCreating pair plot for consensus answers (Z)...")
+        fig_pair_z = az.plot_pair(trace, var_names=["Z"], figsize=(12, 10))
         plt.suptitle("Pair Plot of Consensus Answers (Z)", fontsize=16)
         if save_plots:
             plt.savefig(os.path.join(plots_path, "pairplot_Z.png"), dpi=300, bbox_inches='tight')
         plt.show()
     
-    # If you have few enough variables, you can also create a combined plot
-    if len(D_vars) + len(Z_vars) <= 12:  # A reasonable limit
-        combined_vars = D_vars[:3] + Z_vars[:3]  # Take first few of each
-        fig_pair_combined = az.plot_pair(trace, var_names=combined_vars, figsize=(12, 10))
-        plt.suptitle("Combined Pair Plot (Selected D and Z)", fontsize=16)
+    # Combined plot if both exist
+    if has_d and has_z:
+        print("\nCreating combined pair plot...")
+        fig_pair_combined = az.plot_pair(trace, var_names=["D", "Z"], figsize=(12, 10))
+        plt.suptitle("Combined Pair Plot", fontsize=16)
         if save_plots:
             plt.savefig(os.path.join(plots_path, "pairplot_combined.png"), dpi=300, bbox_inches='tight')
+        plt.show()
+    
+    # Alternative: Create custom pair plots if needed
+    print("\nCreating custom diagnostic plots...")
+    
+    # Extract posterior samples for D and Z
+    d_samples = trace.posterior["D"].values.reshape(-1, N)  # Combine chains and draws
+    z_samples = trace.posterior["Z"].values.reshape(-1, M)  # Combine chains and draws
+    
+    # Create a custom scatter plot for pairs of D values
+    if N >= 2:  # Need at least 2 informants for pairs
+        num_plots = min(5, N)  # Limit number of subplots
+        
+        fig, axes = plt.subplots(num_plots, num_plots, figsize=(12, 10))
+        plt.suptitle("Custom Pair Plot of Informant Competence (D)", fontsize=16)
+        
+        for i in range(num_plots):
+            for j in range(num_plots):
+                if i != j and i < j:  # Upper triangle only
+                    axes[i, j].scatter(d_samples[:, i], d_samples[:, j], alpha=0.5)
+                    axes[i, j].set_xlabel(f"D[{i}]")
+                    axes[i, j].set_ylabel(f"D[{j}]")
+                elif i == j:  # Diagonal
+                    # Histogram on diagonal
+                    axes[i, i].hist(d_samples[:, i], bins=20, alpha=0.7)
+                    axes[i, i].set_xlabel(f"D[{i}]")
+                else:
+                    # Remove lower triangle plots
+                    axes[i, j].set_visible(False)
+        
+        plt.tight_layout(rect=[0, 0, 1, 0.97])  # Adjust for title
+        if save_plots:
+            plt.savefig(os.path.join(plots_path, "custom_pairplot_D.png"), dpi=300)
         plt.show()
     
     # -------------------------------------------
@@ -195,24 +219,29 @@ def analyze_results(trace, data, save_plots=True, plots_dir="plots"):
     if save_plots:
         print(f"\nAll plots have been saved to the '{plots_path}' directory.")
 
-
 def main():
     """
     Main function to load data, run the CCT model, and analyze results.
     """
+    # Load the data using the default path (going up from code/ to project root)
     plant_knowledge_df = load_plant_knowledge_data()
     
     if plant_knowledge_df is None:
         print("Error: Failed to load data. Exiting.")
         return
 
+    # Convert the Pandas DataFrame to a NumPy array for PyMC
     plant_knowledge_data = plant_knowledge_df.values
 
+    # Implement the model in PyMC
     model = cct_model(plant_knowledge_data)
 
+    # Perform inference
     with model:
+        # Ensure we're using return_inferencedata=True to get proper ArviZ format
         trace = pm.sample(draws=2000, chains=4, tune=1000, return_inferencedata=True)
 
+    # Analyze the results and save plots to a 'plots' directory
     analyze_results(trace, plant_knowledge_data, save_plots=True, plots_dir="plots")
     
     print("\nAnalysis complete! Check the plots directory for visualization files.")
